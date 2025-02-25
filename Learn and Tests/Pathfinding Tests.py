@@ -3,28 +3,6 @@ from pathfinding.finder.a_star import AStarFinder
 from pathfinding.core.diagonal_movement import DiagonalMovement 
 from heapq import heapify, heappop, heappush
 
-"""matrix = [
-    [1,1,1,1,1,1],
-    [1,1,0,1,1,1],
-    [1,1,1,1,1,1]
-]
-
-#Grid Creation
-grid  = Grid(matrix = matrix)
-
-#2. create start and end node
-start = grid.node(0,0)
-end = grid.node(5,2)
-
-#3. create a finder with a movement style
-finder = AStarFinder(diagonal_movement = DiagonalMovement.always)
-
-#4. Use finder to find path 
-path, runs = finder.find_path(start,end,grid)
-
-#Print result
-print(path)"""
-
 #Graph of Map with costings
 
 norm_cost = 1
@@ -97,19 +75,19 @@ adjacency_map = {
     "locB" : {"j" : norm_cost},
     "locC" : {"q" : norm_cost},
     "locD" : {"o" : norm_cost},
-    "e" : {"f" : norm_cost, "l" : norm_cost, "dep1" : norm_cost},
-    "f" : {"locA" : norm_cost, "e" : norm_cost, "g" : norm_cost},
-    "g" : {"f" : norm_cost, "h" : norm_cost, "start" : norm_cost},
+    "e" : {"f" : norm_cost / 2, "l" : norm_cost, "dep1" : norm_cost},
+    "f" : {"locA" : norm_cost, "e" : norm_cost / 2, "g" : norm_cost / 2},
+    "g" : {"f" : norm_cost / 2, "h" : norm_cost, "start" : norm_cost},
     "h" : {"g" : norm_cost, "i" : norm_cost, "dep2" : norm_cost},
-    "i" : {"h" : norm_cost, "j" : norm_cost, "p" : norm_cost},   
-    "j" : {"locB" : norm_cost, "i" : norm_cost, "k" : norm_cost},
-    "k" : {"j" : norm_cost, "l" : norm_cost, "q" : norm_cost},
+    "i" : {"h" : norm_cost, "j" : norm_cost / 2, "p" : norm_cost},   
+    "j" : {"locB" : norm_cost, "i" : norm_cost / 2, "k" : norm_cost / 2},
+    "k" : {"j" : norm_cost / 2, "l" : norm_cost, "q" : norm_cost / 2},
     "l" : {"e" : norm_cost, "k" : norm_cost, "m" : norm_cost},
     "m" : {"l" : norm_cost, "n" : norm_cost}, 
-    "n" : {"m" : norm_cost, "o" : norm_cost / 2, "q" : norm_cost},
+    "n" : {"m" : norm_cost, "o" : norm_cost / 2, "q" : norm_cost / 2},
     "o" : {"locD" : norm_cost, "n" : norm_cost / 2, "p" : norm_cost / 2},
     "p" : {"i" : norm_cost, "o" : norm_cost / 2}, 
-    "q" : {"locC" : norm_cost, "k" : norm_cost, "n" : norm_cost},
+    "q" : {"locC" : norm_cost, "k" : norm_cost / 2, "n" : norm_cost / 2},
     "start" : {"g" : norm_cost},
     "dep2" : {"e" : norm_cost},
     "dep1" : {"h" : norm_cost}}
@@ -118,4 +96,4 @@ map = Graph(graph = adjacency_map)
 
 start_distances, start_predecessors = map.shortest_distance("start")
 
-print (map.shortest_path("start", "locD"), start_distances["locD"])
+print (map.shortest_path("start", "locA"), start_distances["locA"])
