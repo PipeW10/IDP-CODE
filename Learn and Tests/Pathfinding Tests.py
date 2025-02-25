@@ -68,6 +68,15 @@ class Graph:
         path.reverse()
 
         return path
+    
+    def path_direction (self, path, dirc_map):
+        directions = []
+        
+        
+        for i in range(len(path) - 1):
+            directions.append(dirc_map[path[i]][path[i+1]])
+        return directions 
+        
                     
         
 adjacency_map = {
@@ -92,8 +101,59 @@ adjacency_map = {
     "dep2" : {"e" : norm_cost},
     "dep1" : {"h" : norm_cost}}
 
+# N = 1 E = 2 S = 3 W = 4
+
+direction_map = {
+    "locA" : {"f" : 3},
+    "locB" : {"j" : 1},
+    "locC" : {"q" : 2},
+    "locD" : {"o" : 1},
+    "e" : {"f" : 2, "l" : 1, "dep1" : 3},
+    "f" : {"locA" : 1, "e" : 4, "g" : 2},
+    "g" : {"f" : 4, "h" : 2, "start" : 3},
+    "h" : {"g" : 4, "i" : 1, "dep2" : 3},
+    "i" : {"h" : 3, "j" : 4, "p" : 1},   
+    "j" : {"locB" : 3, "i" : 2, "k" : 4},
+    "k" : {"j" : 2, "l" : 4, "q" : 1},
+    "l" : {"e" : 3, "k" : 2, "m" : 1},
+    "m" : {"l" : 3, "n" : 2}, 
+    "n" : {"m" : 4, "o" : 2, "q" : 3},
+    "o" : {"locD" : 3, "n" : 4, "p" : 2},
+    "p" : {"i" : 3, "o" : 4}, 
+    "q" : {"locC" : 4, "k" : 3, "n" : 1},
+    "start" : {"g" : 1},
+    "dep2" : {"e" : 1},
+    "dep1" : {"h" : 1}}
+
 map = Graph(graph = adjacency_map)
 
 start_distances, start_predecessors = map.shortest_distance("start")
 
-print (map.shortest_path("start", "locA"), start_distances["locA"])
+print (map.shortest_path("locD", "locC"), start_distances["locA"])
+
+print (map.path_direction(path = map.shortest_path("locD", "locC"), dirc_map = direction_map))
+
+#Test Writing of Actual Code
+
+current_dirc = 1
+current_node  = "start"
+current_path = map.shortest_path("start", "locC")
+future_dircs = map.path_direction(path = current_path, dirc_map = direction_map)
+
+def travel(path, dircs, current_dirc, current_node):
+    step = 0
+    
+    for step in range(len(path)):
+        turn_dirc = current_node - dircs[step]
+        match turn_dirc:
+            case 0:
+                null
+            case -1 | 3:
+                turn(90)
+            case 1 | -3:
+                turn(-90)
+            case 2 | -2:
+                turn (180)
+        head_straight()
+        step += 1
+        
