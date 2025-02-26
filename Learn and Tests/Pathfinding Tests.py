@@ -133,73 +133,12 @@ print (map.shortest_path("locD", "locC"), start_distances["locA"])
 
 print (map.path_direction(path = map.shortest_path("locD", "locC"), dirc_map = direction_map))
 
-#Test Writing of Actual Code
-#CHECK HOW TO INTEGRATE LINE TRACKING SEAMLESSLY
-boxes_picked  = 0
-current_dirc = 1
-current_node  = "start"
-current_path = map.shortest_path("start", "locC")
-future_dircs = map.path_direction(path = current_path, dirc_map = direction_map)
-
-
-#Operation "Lift" or "Drop" or "End"
-def travel(path, dircs, current_dirc, current_node, operation):
-    step = 0
-    
-    for step in range(len(path)):
-        turn_dirc = current_node - dircs[step]
-        match turn_dirc:
-            case 0:
-                pass
-            case -1 | 3:
-                turn(90)
-            case 1 | -3:
-                turn(-90)
-            case 2 | -2:
-                turn (180)
-        current_dirc = dircs[step]
-        step += 1
-        if step != len(path):
-            head_straight()
-        else:
-            continue
-        
-    if operation == "End":
-        finish()
-    else:
-        perform_op(operation)
-
-def perform_op (operation):
-    if operation == "Lift":
-        #move forward until box detected
-        #lift forklift
-        pass
-    else:
-        #move forward until in box
-        #lower forklift
-        pass
-
-def head_straight():
-    motorL.Forward(100)
-    motorR.Forward(100)
-    #use line tracking to stay on track
-
-def turn(deg):
-    #pay attention to line tracking
-    fast_speed = 75
-    slow_speed = 50
-    turn_time = 3
-    
-    if deg == 90:
-        motorL.Forward(fast_speed)
-        motorR.Forward(slow_speed)
-        sleep(turn_time)
-    elif deg == -90:
-        motorR.Forward(fast_speed)
-        motorL.Forward(slow_speed)
-        sleep(turn_time)
-    else:
-        motorL.Forward(fast_speed)
-        motorR.Reverse(slow_speed)
-        sleep(turn_time)
-        
+dirc_paths = {
+    "locA" : {"dep1" : map.path_direction(path = map.shortest_path("locA", "dep1"), dirc_map = direction_map), "dep2" : map.path_direction(path = map.shortest_path("locA", "dep2"), dirc_map = direction_map)},
+    "locB" : {"dep1" : map.path_direction(path = map.shortest_path("locB", "dep1"), dirc_map = direction_map), "dep2" : map.path_direction(path = map.shortest_path("locB", "dep2"), dirc_map = direction_map)},
+    "locC" : {"dep1" : map.path_direction(path = map.shortest_path("locC", "dep1"), dirc_map = direction_map), "dep2" : map.path_direction(path = map.shortest_path("locC", "dep2"), dirc_map = direction_map)},
+    "locD" : {"dep1" : map.path_direction(path = map.shortest_path("locD", "dep1"), dirc_map = direction_map), "dep2" : map.path_direction(path = map.shortest_path("locD", "dep2"), dirc_map = direction_map)},
+    "start" : {"locA" : map.path_direction(path = map.shortest_path("start", "locA"), dirc_map = direction_map)},
+    "dep2" : {"locB" : map.path_direction(path = map.shortest_path("dep2", "locB"), dirc_map = direction_map), "locC" : map.path_direction(path = map.shortest_path("dep2", "locC"), dirc_map = direction_map), "locD" : map.path_direction(path = map.shortest_path("dep2", "locD"), dirc_map = direction_map), "start": map.path_direction(path = map.shortest_path("dep2", "start"), dirc_map = direction_map)},
+    "dep1" : {"locB" : map.path_direction(path = map.shortest_path("dep2", "locB"), dirc_map = direction_map), "locC" : map.path_direction(path = map.shortest_path("dep2", "locC"), dirc_map = direction_map), "locD" : map.path_direction(path = map.shortest_path("dep2", "locD"), dirc_map = direction_map), "start": map.path_direction(path = map.shortest_path("dep2", "start"), dirc_map = direction_map)}
+    }
