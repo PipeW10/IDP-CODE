@@ -3,7 +3,8 @@ from utime import sleep
 from MOTOR import Motor
 
 
-motor=Motor()
+motorL = Motor(4,5)
+motorR = Motor(6,7)
 
 while True:
  motor.Forward()
