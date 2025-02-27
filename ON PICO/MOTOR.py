@@ -1,9 +1,8 @@
 from machine import Pin, PWM
-from utime import sleep
 
 class Motor:
- def __init__(self, dir, pwm):
-     self.Dir = Pin(dir)
+ def __init__(self, dirc, pwm):
+     self.Dir = Pin(dirc, Pin.OUT)
      self.pwm = PWM(Pin(pwm)) # set speed
      self.pwm.freq(1000) # set max frequency
      self.pwm.duty_u16(0) # set duty cycle
