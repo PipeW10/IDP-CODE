@@ -15,23 +15,11 @@ class Servo:
         #Set PWM frequency
         self.freq = freq
         self.freq (self.freq)
+    
+    def lift(self):
+        self.duty_u16(self.max_duty)
+    
+    def drop (self):
+        self.duty_u16(self.min_duty)
 
 servo = Servo(pin = 15, freq = 50) 
-
-
-    
-try:
-    while True:
-        #Servo at 0 degrees
-        servo.duty_u16(min_duty)
-        sleep(2)
-        #Servo at 90 degrees
-        servo.duty_u16(half_duty)
-        sleep(2)
-        #Servo at 180 degrees
-        servo.duty_u16(max_duty)
-        sleep(2)
-except KeyboardInterrupt:
-    print("Keyboard interrupt")
-    # Turn off PWM
-    servo.deinit()
