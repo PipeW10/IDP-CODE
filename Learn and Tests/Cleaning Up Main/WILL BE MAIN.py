@@ -5,7 +5,7 @@ from CONTROLLER import Controller
 
 #VARIABLES NEEDED THROUGHOUT CODE
 #Set the button which will be used to start the run
-button = Pin(12, Pin.IN, Pin.PULL_DOWN)
+button = Pin(12, Pin.IN, Pin.PULL_UP)
 
 controller = Controller()
 
@@ -15,7 +15,7 @@ def start():
     led = Pin(14, Pin.OUT)
     led.value(1)
     
-    controller.undertake_task
+    controller.undertake_task()
     
     led.value(0)
         
@@ -25,5 +25,6 @@ while (button.value() == 0):
     continue
 
 start()
-    
+
+button.irq(trigger=machine.Pin.IRQ_FALLING, handler=start)   
 

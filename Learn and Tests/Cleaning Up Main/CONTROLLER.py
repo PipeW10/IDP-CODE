@@ -13,7 +13,7 @@ class Controller:
         self.current_dirc = 1
         self.current_node  = "start"
         self.visit_order = ["locA", "locB", "locC", "locD", "start"]
-        self.visit_no = 0
+        self.visit_no, self.boxes_picked = 0
         #Operation "Lift" or "Drop" or "End"
         self.operation = "lift"
         self.nav = Navigator()
@@ -104,8 +104,11 @@ class Controller:
             #Servo at 90 degrees
             self.servo.lift()
             
+            #Change operation to drop
             self.operation = "Drop"
-            pass
+            #Add 1 to number of boxes picked
+            self.boxes_picked += 1
+
         else:
             
             #move forward until in box
