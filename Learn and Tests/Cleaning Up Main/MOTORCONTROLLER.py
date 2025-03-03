@@ -4,7 +4,7 @@ from time import sleep
 class MControl():
     def __init__ (self):
         self.motorL = Motor(4,5)
-        self.motorR = Motor(6,7)
+        self.motorR = Motor(7,6)
        
     def head_straight(self):
         self.motorL.Forward(100)

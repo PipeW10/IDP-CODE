@@ -14,7 +14,6 @@ class Servo:
         
         #Set PWM frequency
         self.freq = freq
-        self.freq (self.freq)
     
     def lift(self):
         self.duty_u16(self.max_duty)
