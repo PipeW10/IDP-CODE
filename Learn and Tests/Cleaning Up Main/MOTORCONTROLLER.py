@@ -1,16 +1,17 @@
 from MOTOR import Motor
 from time import sleep
+from LINES import LineFollower
 
 class MControl():
     def __init__ (self):
         self.motorL = Motor(4,5)
         self.motorR = Motor(7,6)
+        self.linef = LineFollower()
        
     def head_straight(self):
-        self.motorL.Forward(100)
-        self.motorR.Forward(100)
-        #use line tracking to stay on track
-        #until node found
+        while self.linef.intersection_type() == "NO INTERSECTION":
+            self.linef.follow_line()
+        
 
     def turn(self,deg):
         #pay attention to line tracking
@@ -30,5 +31,9 @@ class MControl():
             self.motorL.Forward(fast_speed)
             self.motorR.Reverse(fast_speed)
             sleep(turn_time)
+        self.motorL.off()
+        self.motorR.off()
+    
+    def off(self):
         self.motorL.off()
         self.motorR.off()

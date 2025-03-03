@@ -140,6 +140,7 @@ class Controller:
     def finsh(self):
         #get into finsh box
         #turn motors off
+        self.mcont.off()
         pass
 
             
