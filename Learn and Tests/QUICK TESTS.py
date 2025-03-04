@@ -4,27 +4,28 @@ from MOTORCONTROLLER import MControl
 nav = Navigator()
 mcont = MControl()
 
+#TEST FROM A TO B
 #Number of nodes passed by
 #Used to keep track of where in the journey the bot is
 step = 0
+current_dirc = 1
         
 #Get the path to be traversed and the correseponding array of cardinal directions
-path = return_path("start", "depA")
-dircs = return_dircs("start", "depA")
+path = nav.return_nodes("start", "locA")
+dircs = nav.return_dircs("start", "locA")
 
 #Travel through the whole path until the end point is reached
 for step in range(len(path)):
     #calculate how much to turn
     turn_dirc = current_dirc - dircs[step]
     #turn corresponding to the turning degrees needed
-    match turn_dirc:
-        case 0:
+    if turn_dirc == 0:
             pass
-        case -1 | 3:
+    elif turn_dirc ==  -1 or turn_dirc == 3:
             mcont.turn(90)
-        case 1 | -3:
+    elif turn_dirc == 1 or turn_dirc == -3:
             mcont.turn(-90)
-        case 2 | -2:
+    elif turn_dirc == 2 or turn_dirc == -2:
             mcont.turn(180)
     #Set what the new current direction is and what the node will be after travelling forward 
     current_dirc = dircs[step]
@@ -37,3 +38,13 @@ for step in range(len(path)):
     #If the end of the path has been reached
     else:
         mcont.off()
+        
+
+
+#LINE FOLLOW TEST
+from LINES import LineFollower
+linef = LineFollower()
+
+while True:
+    linef.follow_line()
+    

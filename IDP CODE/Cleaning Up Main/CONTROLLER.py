@@ -22,6 +22,7 @@ class Controller:
     
     
     def undertake_task(self):
+        self.mcont.out_of_start()
         while self.visit_no < len(self.visit_order):
             self.travel()
     
@@ -135,7 +136,7 @@ class Controller:
             end = "dep1"
             
         return end
-
+        
 
     def finsh(self):
         #get into finsh box

@@ -7,7 +7,8 @@ class MControl():
         self.motorL = Motor(4,5)
         self.motorR = Motor(7,6)
         self.linef = LineFollower()
-       
+    
+    #Heads straight following the line until an intersection is found
     def head_straight(self):
         while self.linef.intersection_type() == "NO INTERSECTION":
             self.linef.follow_line()
@@ -33,7 +34,14 @@ class MControl():
             sleep(turn_time)
         self.motorL.off()
         self.motorR.off()
+        
+    def set_speeds(self, left_speed, right_speed):
+        self.motorL.Forward(left_speed)
+        self.motorR.Forward(right_speed)
     
     def off(self):
         self.motorL.off()
         self.motorR.off()
+    
+    def out_of_start(self):
+        self.linef.out_of_start()
