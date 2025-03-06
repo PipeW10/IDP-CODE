@@ -20,12 +20,12 @@ class LineFollower():
         self.mcont = MControl()
 
         self.NOM_SPEED = 100 # Nominal motor speed # ADJUST FOR TURNING STRENGTH
-        self.COR_SPEED = 0 # Correction speed of slower motor
+        self.COR_SPEED = 60 # Correction speed of slower motor
                
         self.last_valid_state = "F" # Start with Forward state
 
     def read_sensors(self): # current sensor states
-        return [0, self.S2.value(), self.S3.value(), 0]
+        return [self.S1.value(), self.S2.value(), self.S3.value(), self.S3.value()]
 
     #WILL GET RID OF THESE TURNS
     def move_forward(self): # forward command
@@ -66,7 +66,7 @@ class LineFollower():
         elif sensors == [0, 0, 1, 0] or sensors == [0, 0, 0, 1]: # Drifting left
             #self.mcont.set_speeds(left_speed = self.NOM_SPEED, right_speed = self.COR_SPEED)
             self.sml_turn_right()
-            self.last_valid_state = "L"
+            self.last_valid_state = "R"
 
         elif sensors == [0, 0, 0, 0]: # No line detected
             if self.last_valid_state == "F":
@@ -117,3 +117,4 @@ class LineFollower():
         while sensors != [0,1,1,0]:
             self.follow_line()
         
+

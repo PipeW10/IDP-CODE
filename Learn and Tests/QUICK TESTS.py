@@ -48,3 +48,19 @@ linef = LineFollower()
 while True:
     linef.follow_line()
     
+    
+from machine import Pin
+#for testting purposes
+interrupt = 0
+button = Pin(26, Pin.IN, Pin.PULL_UP)
+
+def start(pin):
+    if interrupt == 0:
+        interrupt = 1
+        #enter code to run here
+    else:
+        interrupt = 0
+        #enter stop code here
+        
+button.irq(trigger=machine.Pin.IRQ_FALLING, handler=start)   
+    

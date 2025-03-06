@@ -17,7 +17,7 @@ class MControl():
     def turn(self,deg):
         #pay attention to line tracking
         fast_speed = 75
-        slow_speed = 50
+        slow_speed = 0
         turn_time = 3
 
         if deg == 90:
