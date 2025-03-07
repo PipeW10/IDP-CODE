@@ -34,15 +34,15 @@ class LineFollower():
     def follow_line(self): # SIMPLY FOLLOWING A LINE
         sensors = self.read_sensors()
 
-        if sensors == [0, 1, 1, 0]: # Centered on the line
+        if sensors[1] == 1 and sensors[2] == 1: # Centered on the line
             self.set_speeds(left_speed = self.NOM_SPEED, right_speed = self.NOM_SPEED)
             self.last_valid_state = "F"
 
-        elif sensors == [0, 1, 0, 0] or sensors == [1, 0, 0, 0]: # Drifting right
+        elif sensors[1] == 1 and sensors[2] == 0: # Drifting right
             self.set_speeds(left_speed = self.COR_SPEED, right_speed = self.NOM_SPEED)
             self.last_valid_state = "L"
 
-        elif sensors == [0, 0, 1, 0] or sensors == [0, 0, 0, 1]: # Drifting left
+        elif sensors[2] == 1 or sensors[1] == 0: # Drifting left
             self.set_speeds(left_speed = self.NOM_SPEED, right_speed = self.COR_SPEED)
             self.last_valid_state = "R"
 
@@ -60,13 +60,13 @@ class LineFollower():
         #IS THIS REDUNDANT????
         else: # continue last valid action for unexpected states
             if self.last_valid_state == "F":
-                self.move_forward()
+                self.set_speeds(left_speed = self.NOM_SPEED, right_speed = self.NOM_SPEED)
             elif self.last_valid_state == "L":
-                self.sml_turn_left()
+                self.set_speeds(left_speed = self.COR_SPEED, right_speed = self.NOM_SPEED)
             elif self.last_valid_state == "R":
-                self.sml_turn_right()
+                self.set_speeds(left_speed = self.NOM_SPEED, right_speed = self.COR_SPEED)
             elif self.last_valid_state == "stop":
-                self.stop()
+                self.off()
 
     #PROBS GET RID OF
     def intersection_type(self):
@@ -96,26 +96,26 @@ class LineFollower():
         f_fast_speed = 75
         r_slow_speed = 20
         
-        turn_time = 1.5
+        turn_time = 1.0
         f_turn_time = 2.5
 
         if deg == 90:
             self.motorL.Forward(f_fast_speed)
-            self.motorR.Reverse(r_slow_speed)
+            self.motorR.Forward(r_slow_speed)
             sleep(turn_time)
-            while (self.read_sensors()[0] == 0):
+            while (self.read_sensors()[1] == 0):
                 sleep(0.1)
         elif deg == -90:
             self.motorR.Forward(f_fast_speed)
-            self.motorL.Reverse(r_slow_speed)
+            self.motorL.Forward(r_slow_speed)
             sleep(turn_time)
-            while (self.read_sensors()[3] == 0):
+            while (self.read_sensors()[2] == 0):
                 sleep(0.1)
         else:
             self.motorL.Forward(f_fast_speed)
             self.motorR.Reverse(f_fast_speed)
             sleep(f_turn_time)
-            while (self.read_sensors()[0] == 0):
+            while (self.read_sensors()[1] == 0):
                 sleep(0.1)
         self.off()
         
@@ -126,4 +126,5 @@ class LineFollower():
     def off(self):
         self.motorL.off()
         self.motorR.off()
+
 
