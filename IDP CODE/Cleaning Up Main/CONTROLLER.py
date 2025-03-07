@@ -2,7 +2,7 @@ from machine import Pin, I2C, PWM
 from tcs34725 import TCS34725
 from SERVO import Servo
 from NAVIGATOR import Navigator
-from MOTORCONTROLLER import MControl
+from LINES import LineFollower
 
 
 #Class to control all operations the bot does 
@@ -17,12 +17,12 @@ class Controller:
         #Operation "Lift" or "Drop" or "End"
         self.operation = "lift"
         self.nav = Navigator()
-        self.mcont = MControl()
+        self.linef = LineFollower()
         self.servo = Servo(pin = 15, freq = 50)
     
     
     def undertake_task(self):
-        self.mcont.out_of_start()
+        self.linef.out_of_start()
         while self.visit_no < len(self.visit_order):
             self.travel()
     
@@ -71,11 +71,11 @@ class Controller:
                 case 0:
                     pass
                 case -1 | 3:
-                    self.mcont.turn(90)
+                    self.linef.turn(90)
                 case 1 | -3:
-                    self.mcont.turn(-90)
+                    self.linef.turn(-90)
                 case 2 | -2:
-                    self.mcont.turn(180)
+                    self.linef.turn(180)
             #Set what the new current direction is and what the node will be after travelling forward 
             self.current_dirc = dircs[step]
             self.current_node = path[step]
@@ -83,7 +83,7 @@ class Controller:
             step += 1
             #If the end of the path has not been reached
             if step != len(path):
-                self.mcont.head_straight()
+                self.linef.head_straight()
             #If the end of the path has been reached
             else:
                 #Exit loop
@@ -141,7 +141,7 @@ class Controller:
     def finsh(self):
         #get into finsh box
         #turn motors off
-        self.mcont.off()
+        self.linef.off()
         pass
 
             

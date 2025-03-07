@@ -4,7 +4,7 @@
 # Assumes Pin=1 --> white/line, and Pin=0 black/non-line
 from machine import Pin, PWM
 from MOTOR import Motor
-from MOTORCONTROLLER import MControl
+from time import sleep
 
 class LineFollower():
     
@@ -14,10 +14,9 @@ class LineFollower():
         self.S3 = Pin(19, Pin.IN) # Right sensor
         self.S4 = Pin(21, Pin.IN) # Rightmost sensor
 
-        # Define motor control pins GET RID OF MOTORS USE MCONTROL
-        self.left_motor = Motor(4,5)
-        self.right_motor = Motor(7,6)
-        self.mcont = MControl()
+        # Define motor control pins GET RID OF MOTORS USE ROL
+        self.motorL = Motor(4,5)
+        self.motorR = Motor(7,6)
 
         self.NOM_SPEED = 100 # Nominal motor speed # ADJUST FOR TURNING STRENGTH
         self.COR_SPEED = 60 # Correction speed of slower motor
@@ -27,60 +26,35 @@ class LineFollower():
     def read_sensors(self): # current sensor states
         return [self.S1.value(), self.S2.value(), self.S3.value(), self.S3.value()]
 
-    #WILL GET RID OF THESE TURNS
-    def move_forward(self): # forward command
-        self.left_motor.Forward(self.NOM_SPEED)
-        self.right_motor.Forward(self.NOM_SPEED)
-
-    def sml_turn_left(self): # correct by slightly turning left
-        self.left_motor.Forward(self.COR_SPEED)
-        self.right_motor.Forward(self.NOM_SPEED)
-
-    def sml_turn_right(self): # correct by slightly turning right
-        self.left_motor.Forward(self.NOM_SPEED)
-        self.right_motor.Forward(self.COR_SPEED)
-
-    def stop(self):
-        self.left_motor.Forward(0)
-        self.right_motor.Forward(0)
-
-    def reverse(self):
-        self.left_motor.Forward(-self.NOM_SPEED)
-        self.right_motor.Forward(-self.NOM_SPEED)
-
-
+           #Heads straight following the line until an intersection is found
+    def head_straight(self):
+        while self.linef.intersection_type() == "NO INTERSECTION":
+            self.linef.follow_line()
 
     def follow_line(self): # SIMPLY FOLLOWING A LINE
         sensors = self.read_sensors()
 
         if sensors == [0, 1, 1, 0]: # Centered on the line
-            #self.mcont.set_speeds(left_speed = self.NOM_SPEED, right_speed = self.NOM_SPEED)
-            self.move_forward()
+            self.set_speeds(left_speed = self.NOM_SPEED, right_speed = self.NOM_SPEED)
             self.last_valid_state = "F"
 
         elif sensors == [0, 1, 0, 0] or sensors == [1, 0, 0, 0]: # Drifting right
-            #self.mcont.set_speeds(left_speed = self.COR_SPEED, right_speed = self.NOM_SPEED)
-            self.sml_turn_left()
+            self.set_speeds(left_speed = self.COR_SPEED, right_speed = self.NOM_SPEED)
             self.last_valid_state = "L"
 
         elif sensors == [0, 0, 1, 0] or sensors == [0, 0, 0, 1]: # Drifting left
-            #self.mcont.set_speeds(left_speed = self.NOM_SPEED, right_speed = self.COR_SPEED)
-            self.sml_turn_right()
+            self.set_speeds(left_speed = self.NOM_SPEED, right_speed = self.COR_SPEED)
             self.last_valid_state = "R"
 
         elif sensors == [0, 0, 0, 0]: # No line detected
             if self.last_valid_state == "F":
-                #self.mcont.set_speeds(left_speed = self.NOM_SPEED, right_speed = self.NOM_SPEED)
-                self.move_forward()
+                self.set_speeds(left_speed = self.NOM_SPEED, right_speed = self.NOM_SPEED)
             elif self.last_valid_state == "L":
-                #self.mcont.set_speeds(left_speed = self.COR_SPEED, right_speed = self.NOM_SPEED)
-                self.sml_turn_left()
+                self.set_speeds(left_speed = self.COR_SPEED, right_speed = self.NOM_SPEED)
             elif self.last_valid_state == "R":
-                #self.mcont.set_speeds(left_speed = self.NOM_SPEED, right_speed = self.COR_SPEED)
-                self.sml_turn_right()
+                self.set_speeds(left_speed = self.NOM_SPEED, right_speed = self.COR_SPEED)
             else:
-                #self.mcont.off()
-                self.stop()
+                self.off()
                 self.last_valid_state = "stop"
                 
         #IS THIS REDUNDANT????
@@ -116,5 +90,40 @@ class LineFollower():
         sensors = self.read_sensors()
         while sensors != [0,1,1,0]:
             self.follow_line()
+    
+    def turn(self,deg):
+        #pay attention to line tracking
+        f_fast_speed = 75
+        r_slow_speed = 20
         
+        turn_time = 1.5
+        f_turn_time = 2.5
+
+        if deg == 90:
+            self.motorL.Forward(f_fast_speed)
+            self.motorR.Reverse(r_slow_speed)
+            sleep(turn_time)
+            while (self.read_sensors()[0] == 0):
+                sleep(0.1)
+        elif deg == -90:
+            self.motorR.Forward(f_fast_speed)
+            self.motorL.Reverse(r_slow_speed)
+            sleep(turn_time)
+            while (self.read_sensors()[3] == 0):
+                sleep(0.1)
+        else:
+            self.motorL.Forward(f_fast_speed)
+            self.motorR.Reverse(f_fast_speed)
+            sleep(f_turn_time)
+            while (self.read_sensors()[0] == 0):
+                sleep(0.1)
+        self.off()
+        
+    def set_speeds(self, left_speed, right_speed):
+        self.motorL.Forward(left_speed)
+        self.motorR.Forward(right_speed)
+    
+    def off(self):
+        self.motorL.off()
+        self.motorR.off()
 
