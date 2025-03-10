@@ -1,5 +1,6 @@
 from machine import Pin, I2C, PWM 
 from tcs34725 import TCS34725
+from vl53l0x import VL53L0X
 from SERVO import Servo
 from NAVIGATOR import Navigator
 from LINES import LineFollower
@@ -10,16 +11,27 @@ from LINES import LineFollower
 class Controller:
     
     def __innit__ (self):
+        #Initiate navigator and LineFollower classes
+        self.nav = Navigator()
+        self.linef = LineFollower()
+        
+        #Set all needed variables to their start values
         self.current_dirc = 1
         self.current_node  = "start"
         self.visit_order = ["locA", "locB", "locC", "locD", "start"]
         self.visit_no, self.boxes_picked = 0
         #Operation "Lift" or "Drop" or "End"
         self.operation = "lift"
-        self.nav = Navigator()
-        self.linef = LineFollower()
+        
+        #Set up forklift Servo
         self.servo = Servo(pin = 15, freq = 50)
-    
+        
+        #Time of Flight Sensor set up
+        self.tof = VL53L0X(I2C(id=0, sda=Pin(16), scl=Pin(17)))
+        self.tof.set_measurement_timing_budget(40000)
+        self.tof.set_Vcsel_pulse_period(self.tof.vcsel_period_type[0], 12)
+        self.tof.set_Vcsel_pulse_period(self.tof.vcsel_period_type[1], 8)
+            
     
     def undertake_task(self):
         self.linef.out_of_start()
@@ -101,6 +113,8 @@ class Controller:
     def perform_op (self):
         if self.operation == "Lift":
             #move forward until box detected
+            while (self.tof.ping()-50):
+                self.linef.follow_line()
             #lift forklift
             #Servo at 90 degrees
             self.servo.lift()

@@ -18,46 +18,40 @@ class LineFollower():
         self.motorL = Motor(4,5)
         self.motorR = Motor(7,6)
 
-        self.NOM_SPEED = 100 # Nominal motor speed # ADJUST FOR TURNING STRENGTH
-        self.COR_SPEED = 60 # Correction speed of slower motor
+        self.NOM_SPEED = 80 # Nominal motor speed # ADJUST FOR TURNING STRENGTH
+        self.COR_SPEED = 50 # Correction speed of slower motor
                
         self.last_valid_state = "F" # Start with Forward state
 
     def read_sensors(self): # current sensor states
-        return [self.S1.value(), self.S2.value(), self.S3.value(), self.S3.value()]
+        return [self.S1.value(), self.S2.value(), self.S3.value(), self.S4.value()]
 
-           #Heads straight following the line until an intersection is found
+    #Heads straight following the line until an intersection is found
     def head_straight(self):
-        while self.linef.intersection_type() == "NO INTERSECTION":
-            self.linef.follow_line()
+        while self.intersection() == False:
+            self.follow_line()
+        #Turn motors off for more consistent turning
+        self.off()
 
-    def follow_line(self): # SIMPLY FOLLOWING A LINE
+    def follow_line(self): # FOLLOWING A LINE
         sensors = self.read_sensors()
 
+        #Reads values of two middle sensors and decides based on their values
         if sensors[1] == 1 and sensors[2] == 1: # Centered on the line
+            #Set both motors to nominal speed
             self.set_speeds(left_speed = self.NOM_SPEED, right_speed = self.NOM_SPEED)
-            self.last_valid_state = "F"
+            self.last_valid_state = "F" #Forward
 
         elif sensors[1] == 1 and sensors[2] == 0: # Drifting right
+            #Slow down left motor to correct 
             self.set_speeds(left_speed = self.COR_SPEED, right_speed = self.NOM_SPEED)
             self.last_valid_state = "L"
 
-        elif sensors[2] == 1 or sensors[1] == 0: # Drifting left
+        elif sensors[2] == 1 and sensors[1] == 0: # Drifting left
+            #Slow down right motor to correct
             self.set_speeds(left_speed = self.NOM_SPEED, right_speed = self.COR_SPEED)
             self.last_valid_state = "R"
-
-        elif sensors == [0, 0, 0, 0]: # No line detected
-            if self.last_valid_state == "F":
-                self.set_speeds(left_speed = self.NOM_SPEED, right_speed = self.NOM_SPEED)
-            elif self.last_valid_state == "L":
-                self.set_speeds(left_speed = self.COR_SPEED, right_speed = self.NOM_SPEED)
-            elif self.last_valid_state == "R":
-                self.set_speeds(left_speed = self.NOM_SPEED, right_speed = self.COR_SPEED)
-            else:
-                self.off()
-                self.last_valid_state = "stop"
                 
-        #IS THIS REDUNDANT????
         else: # continue last valid action for unexpected states
             if self.last_valid_state == "F":
                 self.set_speeds(left_speed = self.NOM_SPEED, right_speed = self.NOM_SPEED)
@@ -65,22 +59,18 @@ class LineFollower():
                 self.set_speeds(left_speed = self.COR_SPEED, right_speed = self.NOM_SPEED)
             elif self.last_valid_state == "R":
                 self.set_speeds(left_speed = self.NOM_SPEED, right_speed = self.COR_SPEED)
+            #COUDL GET RID OF
             elif self.last_valid_state == "stop":
                 self.off()
 
-    #PROBS GET RID OF
-    def intersection_type(self):
+    def intersection(self):
         sensors = self.read_sensors()
-
-        if sensors == [1, 1, 1, 1]:
-            intersection = "STEM" # approaching from base of T junction
-        elif sensors == [1, 1, 0, 0] or sensors == [1, 1, 1, 0]:
-            intersection = "RIGHT ARM" # approaching from right arm of T junction
-        elif sensors == [0, 0, 1, 1] or sensors == [0, 1, 1, 1]:
-            intersection = "LEFT ARM" # approaching from left arm of T junction
+        #If an intersection is detected
+        if sensors == [1, 1, 1, 1] or sensors == [1, 1, 1, 0] or sensors == [0, 1, 1, 1]:
+            intersection = True
+        #If no interection is detected
         else:
-            intersection = "NO INTERSECTION"
-
+            intersection = False
         return intersection
     
     #CHECK THIS WORKS PROPERLY
@@ -93,36 +83,51 @@ class LineFollower():
     
     def turn(self,deg):
         #pay attention to line tracking
+        #Fast and slow speeds to set the motors to depending on the turn 
         f_fast_speed = 75
-        r_slow_speed = 20
+        r_slow_speed = 10
         
+        #Amount of time before the sensors start trying to detect if teh robot has turned
+        #Used to avoid stopping the turn too early
         turn_time = 1.0
         f_turn_time = 2.5
 
-        if deg == 90:
+        if deg == 90: #Right turn
+            #Set left motor to turn quick and right to turn slow
             self.motorL.Forward(f_fast_speed)
             self.motorR.Forward(r_slow_speed)
+            #Wait for the given time
             sleep(turn_time)
+            #Try to detect the line. Exits loop when line is detcted
             while (self.read_sensors()[1] == 0):
                 sleep(0.1)
-        elif deg == -90:
+        elif deg == -90: #Left turn
+            #Set left motor to turn quick and right to turn slow
             self.motorR.Forward(f_fast_speed)
             self.motorL.Forward(r_slow_speed)
+            #Wait for the given time
             sleep(turn_time)
+            #Try to detect the line. Exits loop when line is detcted
             while (self.read_sensors()[2] == 0):
                 sleep(0.1)
-        else:
+        else: #180 degree turn
+            #Set both motors to turn in opposite directions 
             self.motorL.Forward(f_fast_speed)
             self.motorR.Reverse(f_fast_speed)
+            #Wait for the given time
             sleep(f_turn_time)
+            #Try to detect the line. Exits loop when line is detcted
             while (self.read_sensors()[1] == 0):
                 sleep(0.1)
+        #Turn motors off to make line tracking more consistent
         self.off()
-        
-    def set_speeds(self, left_speed, right_speed):
-        self.motorL.Forward(left_speed)
-        self.motorR.Forward(right_speed)
     
+    #Set the motor speeds
+    def set_speeds(self, left_speed, right_speed):
+        self.motorL.Forward(left_speed) #Left motor
+        self.motorR.Forward(right_speed) #Right motor
+    
+    #Turn both motors off
     def off(self):
         self.motorL.off()
         self.motorR.off()
