@@ -4,6 +4,7 @@ from vl53l0x import VL53L0X
 from SERVO import Servo
 from NAVIGATOR import Navigator
 from LINES import LineFollower
+from time import sleep
 
 
 #Class to control all operations the bot does 
@@ -119,7 +120,7 @@ class Controller:
     def perform_op (self):
         if self.operation == "Lift":
             #move forward until box detected
-            while (self.tof.ping()-50):
+            while (self.tof.ping()-50 > 10):
                 self.linef.follow_line()
             #lift forklift
             #Servo at 90 degrees
@@ -131,38 +132,44 @@ class Controller:
             self.boxes_picked += 1
 
         else:
-            
             #move forward until in box
+            self.linef.pass_intersection()
+            self.linef.head_straight()
             #lower forklift
-            #servo down
             self.servo.drop()
             #BACK UP
+            while (self.tof.ping()-50 < 30):
+                self.linef.set_speeds(50,50)
+            #SHOULD TURN AROUND WHEN NAVIGATING TO NEXT BOX
             if self.boxes_picked == 4:
                 self.operation = "End"
             else:
                 self.operation = "Lift"
 
-
+    #Function to detect the colour of the box 
     def detect_colour_depot(self):
+        #Only need to be able to detect one set of colours (ie. red and yellow)
         raw_yellow  = None
         raw_red = None
         #raw_blue = None
         #raw_green = None
+        #read the colour of the box
         raw_colour = self.tcs.read(raw = False)
         #will do a range
         if raw_colour == raw_yellow or raw_colour == raw_red:
             end = "dep2"
         else:
-            end = "dep1"
-            
+            end = "dep1"  
         return end
         
 
     def finsh(self):
         #get into finsh box
+        self.linef.head_straight()
+        self.linef.set_speeds(100,100)
+        sleep(1)
         #turn motors off
         self.linef.off()
-        pass
 
             
         
