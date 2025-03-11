@@ -32,9 +32,12 @@ class Controller:
         self.tof.set_Vcsel_pulse_period(self.tof.vcsel_period_type[0], 12)
         self.tof.set_Vcsel_pulse_period(self.tof.vcsel_period_type[1], 8)
             
-    
+    #Called at the start of the run
     def undertake_task(self):
+        #Calls get the get out of start function 
+        #Drives forward until the first junction is found
         self.linef.out_of_start()
+        #Iterates and calls travel until all of the needed locations have been visited
         while self.visit_no < len(self.visit_order):
             self.travel()
     
@@ -75,26 +78,29 @@ class Controller:
         path, dircs = self.start_new_path()
         
         #Travel through the whole path until the end point is reached
-        for step in range(len(path)):
+        for step in range(len(path) - 1):
             #calculate how much to turn
             turn_dirc = self.current_dirc - dircs[step]
             #turn corresponding to the turning degrees needed
-            match turn_dirc:
-                case 0:
+            if turn_dirc == 0:
+                if step == 0:
                     pass
-                case -1 | 3:
+                else:
+                    self.linef.pass_intersection()
+            elif turn_dirc ==  -1 or turn_dirc == 3:
                     self.linef.turn(90)
-                case 1 | -3:
-                    self.linef.turn(-90)
-                case 2 | -2:
-                    self.linef.turn(180)
+            elif turn_dirc == 1 or turn_dirc == -3:
+                    self.turn(-90)
+            elif turn_dirc == 2 or turn_dirc == -2:
+                    self.turn(180)
+            #Set what the new current direction is and what the node will be after travelling forward 
             #Set what the new current direction is and what the node will be after travelling forward 
             self.current_dirc = dircs[step]
             self.current_node = path[step]
             #Increase step by 1 to keep track of next node to go to
             step += 1
             #If the end of the path has not been reached
-            if step != len(path):
+            if step != len(path) - 1:
                 self.linef.head_straight()
             #If the end of the path has been reached
             else:

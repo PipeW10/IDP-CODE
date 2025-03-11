@@ -121,3 +121,23 @@ def start(pin, interrupt = interrupt):
 
 button.irq(trigger=machine.Pin.IRQ_FALLING, handler=start)
 
+
+
+#LINE FOLLOW TEST
+from machine import Pin
+from LINES import LineFollower
+linef = LineFollower()
+button = Pin(26, Pin.IN, Pin.PULL_UP)
+interrupt = 0
+
+def start(pin, interrupt = interrupt):
+
+    linef.head_straight()
+    linef.turn(90)
+    linef.head_straight()
+    linef.turn(-90)
+    linef.head_straight()
+    linef.off()
+
+
+button.irq(trigger=machine.Pin.IRQ_FALLING, handler=start)

@@ -140,7 +140,7 @@ dirc_paths = {
     "locD" : {"dep1" : map.path_direction(path = map.shortest_path("locD", "dep1"), dirc_map = direction_map), "dep2" : map.path_direction(path = map.shortest_path("locD", "dep2"), dirc_map = direction_map)},
     "start" : {"locA" : map.path_direction(path = map.shortest_path("start", "locA"), dirc_map = direction_map)},
     "dep2" : {"locB" : map.path_direction(path = map.shortest_path("dep2", "locB"), dirc_map = direction_map), "locC" : map.path_direction(path = map.shortest_path("dep2", "locC"), dirc_map = direction_map), "locD" : map.path_direction(path = map.shortest_path("dep2", "locD"), dirc_map = direction_map), "start": map.path_direction(path = map.shortest_path("dep2", "start"), dirc_map = direction_map)},
-    "dep1" : {"locB" : map.path_direction(path = map.shortest_path("dep2", "locB"), dirc_map = direction_map), "locC" : map.path_direction(path = map.shortest_path("dep2", "locC"), dirc_map = direction_map), "locD" : map.path_direction(path = map.shortest_path("dep2", "locD"), dirc_map = direction_map), "start": map.path_direction(path = map.shortest_path("dep2", "start"), dirc_map = direction_map)}
+    "dep1" : {"locB" : map.path_direction(path = map.shortest_path("dep1", "locB"), dirc_map = direction_map), "locC" : map.path_direction(path = map.shortest_path("dep1", "locC"), dirc_map = direction_map), "locD" : map.path_direction(path = map.shortest_path("dep1", "locD"), dirc_map = direction_map), "start": map.path_direction(path = map.shortest_path("dep1", "start"), dirc_map = direction_map)}
     }
 
 node_paths = {
@@ -150,7 +150,8 @@ node_paths = {
     "locD" : {"dep1" : map.shortest_path("locD", "dep1"), "dep2" : map.shortest_path("locD", "dep2")},
     "start" : {"locA" : map.shortest_path("start", "locA")},
     "dep2" : {"locB" : map.shortest_path("dep2", "locB"), "locC" :map.shortest_path("dep2", "locC"), "locD" : map.shortest_path("dep2", "locD"), "start": map.shortest_path("dep2", "start")},
-    "dep1" : {"locB" : map.shortest_path("dep2", "locB"), "locC" : map.shortest_path("dep2", "locC"), "locD" : map.shortest_path("dep2", "locD"), "start": map.shortest_path("dep2", "start")}
+    "dep1" : {"locB" : map.shortest_path("dep1", "locB"), "locC" : map.shortest_path("dep1", "locC"), "locD" : map.shortest_path("dep1", "locD"), "start": map.shortest_path("dep1", "start")}
     }
 
+print(dirc_paths)
 print (node_paths)

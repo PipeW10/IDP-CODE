@@ -18,8 +18,8 @@ class LineFollower():
         self.motorL = Motor(4,5)
         self.motorR = Motor(7,6)
 
-        self.NOM_SPEED = 80 # Nominal motor speed # ADJUST FOR TURNING STRENGTH
-        self.COR_SPEED = 50 # Correction speed of slower motor
+        self.NOM_SPEED = 100 # Nominal motor speed # ADJUST FOR TURNING STRENGTH
+        self.COR_SPEED = 80# Correction speed of slower motor
                
         self.last_valid_state = "F" # Start with Forward state
 
@@ -62,11 +62,15 @@ class LineFollower():
             #COUDL GET RID OF
             elif self.last_valid_state == "stop":
                 self.off()
+            
+    def pass_intersection(self):
+        while self.intersection() == True:
+            self.follow_line()
 
     def intersection(self):
         sensors = self.read_sensors()
         #If an intersection is detected
-        if sensors == [1, 1, 1, 1] or sensors == [1, 1, 1, 0] or sensors == [0, 1, 1, 1]:
+        if sensors[0] == 1 or sensors[3] == 1:
             intersection = True
         #If no interection is detected
         else:
@@ -85,12 +89,12 @@ class LineFollower():
         #pay attention to line tracking
         #Fast and slow speeds to set the motors to depending on the turn 
         f_fast_speed = 75
-        r_slow_speed = 10
+        r_slow_speed = 15
         
         #Amount of time before the sensors start trying to detect if teh robot has turned
         #Used to avoid stopping the turn too early
         turn_time = 1.0
-        f_turn_time = 2.5
+        f_turn_time = 0.5
 
         if deg == 90: #Right turn
             #Set left motor to turn quick and right to turn slow
@@ -112,8 +116,8 @@ class LineFollower():
                 sleep(0.1)
         else: #180 degree turn
             #Set both motors to turn in opposite directions 
-            self.motorL.Forward(f_fast_speed)
-            self.motorR.Reverse(f_fast_speed)
+            self.motorL.Forward(50)
+            self.motorR.Reverse(50)
             #Wait for the given time
             sleep(f_turn_time)
             #Try to detect the line. Exits loop when line is detcted
@@ -121,7 +125,7 @@ class LineFollower():
                 sleep(0.1)
         #Turn motors off to make line tracking more consistent
         self.off()
-    
+            
     #Set the motor speeds
     def set_speeds(self, left_speed, right_speed):
         self.motorL.Forward(left_speed) #Left motor
@@ -131,5 +135,3 @@ class LineFollower():
     def off(self):
         self.motorL.off()
         self.motorR.off()
-
-
