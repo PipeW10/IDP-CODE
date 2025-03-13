@@ -4,14 +4,14 @@ from vl53l0x import VL53L0X
 from SERVO import Servo
 from NAVIGATOR import Navigator
 from LINES import LineFollower
-from time import sleep
+from time import sleep, sleep_ms
 
 
 #Class to control all operations the bot does 
 #Includes movement, picking up and dropping boxes and selection of future route decisions
 class Controller:
     
-    def __innit__ (self):
+    def __init__ (self):
         #Initiate navigator and LineFollower classes
         self.nav = Navigator()
         self.linef = LineFollower()
@@ -20,15 +20,23 @@ class Controller:
         self.current_dirc = 1
         self.current_node  = "start"
         self.visit_order = ["locA", "locB", "locC", "locD", "start"]
-        self.visit_no, self.boxes_picked = 0
+        self.visit_no = 0
+        self.boxes_picked = 0
         #Operation "Lift" or "Drop" or "End"
         self.operation = "lift"
         
         #Set up forklift Servo
         self.servo = Servo(pin = 15, freq = 50)
         
+        #Set up LED
+        self.led = Pin(14, Pin.OUT)
+        
+        #Set up colour sensor
+        self.tcs = TCS34725(I2C(id = 0, sda = Pin(8), scl = Pin(9), freq = 50000))
+        
         #Time of Flight Sensor set up
-        self.tof = VL53L0X(I2C(id=0, sda=Pin(16), scl=Pin(17)))
+        self.tof = VL53L0X(I2C(id=1, sda=Pin(10), scl=Pin(11)))
+        self.sleep_ms(100)
         self.tof.set_measurement_timing_budget(40000)
         self.tof.set_Vcsel_pulse_period(self.tof.vcsel_period_type[0], 12)
         self.tof.set_Vcsel_pulse_period(self.tof.vcsel_period_type[1], 8)
@@ -38,6 +46,7 @@ class Controller:
         #Calls get the get out of start function 
         #Drives forward until the first junction is found
         self.linef.out_of_start()
+        self.led.value(1)
         #Iterates and calls travel until all of the needed locations have been visited
         while self.visit_no < len(self.visit_order):
             self.travel()
@@ -120,7 +129,9 @@ class Controller:
     def perform_op (self):
         if self.operation == "Lift":
             #move forward until box detected
-            while (self.tof.ping()-50 > 10):
+            #while (self.tof.ping()-50 > 10):
+                #self.linef.follow_line()
+            while (self.linef.intersection == False):               
                 self.linef.follow_line()
             #lift forklift
             #Servo at 90 degrees
@@ -138,8 +149,10 @@ class Controller:
             #lower forklift
             self.servo.drop()
             #BACK UP
-            while (self.tof.ping()-50 < 30):
-                self.linef.set_speeds(50,50)
+            #while (self.tof.ping()-50 < 50):
+            while (self.linef.intersection == True):
+                self.linef.motorL.Reverse(50)
+                self.linef.motorR.Reverse(50)
             #SHOULD TURN AROUND WHEN NAVIGATING TO NEXT BOX
             if self.boxes_picked == 4:
                 self.operation = "End"
@@ -149,17 +162,13 @@ class Controller:
     #Function to detect the colour of the box 
     def detect_colour_depot(self):
         #Only need to be able to detect one set of colours (ie. red and yellow)
-        raw_yellow  = None
-        raw_red = None
-        #raw_blue = None
-        #raw_green = None
         #read the colour of the box
-        raw_colour = self.tcs.read(raw = False)
+        colour = self.tcs.read('rgb')
         #will do a range
-        if raw_colour == raw_yellow or raw_colour == raw_red:
-            end = "dep2"
+        if colour[1] == 1:
+            end = "dep1"
         else:
-            end = "dep1"  
+            end = "dep2"  
         return end
         
 
@@ -170,6 +179,7 @@ class Controller:
         sleep(1)
         #turn motors off
         self.linef.off()
+        self.led.value(0)
 
             
         

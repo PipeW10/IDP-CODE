@@ -7,7 +7,7 @@ sda = Pin(16)
 scl = Pin(17)
 id = 0
 
-i2c = I2C(id=0, sda=Pin(16), scl=Pin(17))
+i2c = I2C(id=0, sda=Pin(12), scl=Pin(11))
 
 print(i2c.scan())
 

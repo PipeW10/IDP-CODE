@@ -47,7 +47,7 @@ class TCS34725:
     def _register8(self, register, value=None):
         register |= _COMMAND_BIT
         if value is None:
-            return self.i2c.readfrom_mem(self.address, register, 1)[0]
+            return self.i2c.readfrom_mem(self.address, registear, 1)[0]
         data = ustruct.pack('<B', value)
         self.i2c.writeto_mem(self.address, register, data)
 
