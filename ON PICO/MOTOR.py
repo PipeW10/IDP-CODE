@@ -11,6 +11,7 @@ class Motor:
 
     def off(self):
         self.pwm.duty_u16(0)
+        self.current_speed = 0
 
     def Forward(self, speed):
         if self.current_speed != speed:
@@ -23,3 +24,5 @@ class Motor:
             self.Dir.value(1)
             self.pwm.duty_u16(int(65535*speed/100))
             self.current_speed = -speed
+
+

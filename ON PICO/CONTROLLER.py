@@ -1,6 +1,6 @@
 from machine import Pin, I2C, PWM 
 from tcs34725 import TCS34725
-from vl53l0x import VL53L0X
+#from vl53l0x import VL53L0X
 from SERVO import Servo
 from NAVIGATOR import Navigator
 from LINES import LineFollower
@@ -23,7 +23,7 @@ class Controller:
         self.visit_no = 0
         self.boxes_picked = 0
         #Operation "Lift" or "Drop" or "End"
-        self.operation = "lift"
+        self.operation = "Lift"
         
         #Set up forklift Servo
         self.servo = Servo(pin = 15, freq = 50)
@@ -35,11 +35,11 @@ class Controller:
         self.tcs = TCS34725(I2C(id = 0, sda = Pin(8), scl = Pin(9), freq = 50000))
         
         #Time of Flight Sensor set up
-        self.tof = VL53L0X(I2C(id=1, sda=Pin(10), scl=Pin(11)))
-        self.sleep_ms(100)
-        self.tof.set_measurement_timing_budget(40000)
-        self.tof.set_Vcsel_pulse_period(self.tof.vcsel_period_type[0], 12)
-        self.tof.set_Vcsel_pulse_period(self.tof.vcsel_period_type[1], 8)
+        #self.tof = VL53L0X(I2C(id=1, sda=Pin(10), scl=Pin(11)))
+        #self.sleep_ms(100)
+        #self.tof.set_measurement_timing_budget(40000)
+        #self.tof.set_Vcsel_pulse_period(self.tof.vcsel_period_type[0], 12)
+        #self.tof.set_Vcsel_pulse_period(self.tof.vcsel_period_type[1], 8)
             
     #Called at the start of the run
     def undertake_task(self):
@@ -53,7 +53,6 @@ class Controller:
     
     #Function to find the path and directions needed for the next journey
     def start_new_path(self):
-      
         #Depending on what operation is to be done 
         #If the bot has to pick up a box at the end of the journey
         if self.operation == "Lift":
@@ -69,6 +68,7 @@ class Controller:
         #If the operation is to end the run
         elif self.operation == "End":
             #Make the bot return to the start point
+            self.visit_no += 1
             end = "start"
                 
         #Find in the dirc_paths and paths dictionaries the paths needed
@@ -92,25 +92,32 @@ class Controller:
             #calculate how much to turn
             turn_dirc = self.current_dirc - dircs[step]
             #turn corresponding to the turning degrees needed
-            if turn_dirc == 0:
-                if step == 0:
-                    pass
-                else:
-                    self.linef.pass_intersection()
+            if turn_dirc == 0:             
+                self.linef.pass_intersection()
             elif turn_dirc ==  -1 or turn_dirc == 3:
+                if path[step + 1][:3] == "loc":
+                    self.linef.loc_turn(90)
+                else:
                     self.linef.turn(90)
+                    print("rturn")
             elif turn_dirc == 1 or turn_dirc == -3:
-                    self.turn(-90)
-            elif turn_dirc == 2 or turn_dirc == -2:
-                    self.turn(180)
-            #Set what the new current direction is and what the node will be after travelling forward 
-            #Set what the new current direction is and what the node will be after travelling forward 
+                if path[step + 1][:3] == "loc":
+                    self.linef.loc_turn(-90)
+                else:
+                    self.linef.turn(-90)
+                    print("lturn")
+                
+            #DONT NEED 180 HERE
+            #elif turn_dirc == 2 or turn_dirc == -2:
+                #self.linef.turn(180)
+            #Set what the new current direction is and what the node will be after travelling forward          
             self.current_dirc = dircs[step]
-            self.current_node = path[step]
             #Increase step by 1 to keep track of next node to go to
             step += 1
+            #Set what the new current direction is and what the node will be after travelling forward 
+            self.current_node = path[step]
             #If the end of the path has not been reached
-            if step != len(path) - 1:
+            if step != len(path):
                 self.linef.head_straight()
             #If the end of the path has been reached
             else:
@@ -131,8 +138,7 @@ class Controller:
             #move forward until box detected
             #while (self.tof.ping()-50 > 10):
                 #self.linef.follow_line()
-            while (self.linef.intersection == False):               
-                self.linef.follow_line()
+            self.linef.head_straight()
             #lift forklift
             #Servo at 90 degrees
             self.servo.lift()
@@ -141,42 +147,43 @@ class Controller:
             self.operation = "Drop"
             #Add 1 to number of boxes picked
             self.boxes_picked += 1
-
+            
+            self.linef.exit_loc()
+          
         else:
-            #move forward until in box
-            self.linef.pass_intersection()
             self.linef.head_straight()
             #lower forklift
             self.servo.drop()
             #BACK UP
             #while (self.tof.ping()-50 < 50):
-            while (self.linef.intersection == True):
-                self.linef.motorL.Reverse(50)
-                self.linef.motorR.Reverse(50)
+            self.linef.exit_depot(self.current_node)
             #SHOULD TURN AROUND WHEN NAVIGATING TO NEXT BOX
             if self.boxes_picked == 4:
                 self.operation = "End"
             else:
                 self.operation = "Lift"
-
+        if self.current_dirc == 1 or self.current_dirc == 2:
+            self.current_dirc += 2
+        else:
+            self.current_dirc -= 2
     #Function to detect the colour of the box 
     def detect_colour_depot(self):
         #Only need to be able to detect one set of colours (ie. red and yellow)
         #read the colour of the box
         colour = self.tcs.read('rgb')
         #will do a range
-        if colour[1] == 1:
+        if colour[0] == 1:
             end = "dep1"
         else:
             end = "dep2"  
         return end
         
 
-    def finsh(self):
+    def finish(self):
         #get into finsh box
-        self.linef.head_straight()
+        #self.linef.head_straight()
         self.linef.set_speeds(100,100)
-        sleep(1)
+        sleep(2)
         #turn motors off
         self.linef.off()
         self.led.value(0)

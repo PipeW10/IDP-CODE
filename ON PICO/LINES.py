@@ -85,19 +85,12 @@ class LineFollower():
             self.set_speeds(75,75)
         self.off()
             
-    
-    def turn(self,deg):
-        #pay attention to line tracking
-        #Fast and slow speeds to set the motors to depending on the turn 
+    def loc_turn(self,deg):
+        
         f_fast_speed = 75
         r_slow_speed = 40
-        
-        #Amount of time before the sensors start trying to detect if teh robot has turned
-        #Used to avoid stopping the turn too early
         keep_driving = 500
         turn_time = 500
-        f_turn_time = 1.0
-
         if deg == 90: #Right turn
             self.set_speeds(f_fast_speed, f_fast_speed)
             sleep_ms(keep_driving)
@@ -122,15 +115,48 @@ class LineFollower():
             #Try to detect the line. Exits loop when line is detcted
             while (self.read_sensors()[2] == 0):
                 continue
-        else: #180 degree turn
-            #Set both motors to turn in opposite directions 
-            self.motorL.Forward(50)
-            self.motorR.Reverse(50)
-            #Wait for the given time
-            sleep(f_turn_time)
+    
+    def turn(self,deg):
+        #pay attention to line tracking
+        #Fast and slow speeds to set the motors to depending on the turn 
+        fast_speed = 80
+        slow_speed = 30
+        
+        #Amount of time before the sensors start trying to detect if teh robot has turned
+        #Used to avoid stopping the turn too early
+        turn_time = 500
+        f_turn_time = 3000
+
+        if deg == 90: #Right turn
+            #Set left motor to turn quick and right to turn slow
+            self.motorL.Forward(fast_speed)
+            self.motorR.Forward(slow_speed)
+            #self.set_speeds(fast_speed, slow_speed)
+            sleep_ms(turn_time)
             #Try to detect the line. Exits loop when line is detcted
             while (self.read_sensors()[1] == 0):
-                sleep(0.1)
+                continue
+        elif deg == -90: #Left turn
+            #Set left motor to turn quick and right to turn slow
+            self.motorR.Forward(fast_speed)
+            self.motorL.Forward(slow_speed)
+            #self.set_speeds(slow_speed, fast_speed)
+            sleep_ms(turn_time)
+            #Try to detect the line. Exits loop when line is detcted
+            while (self.read_sensors()[2] == 0):
+                continue
+        elif deg == 180: #180 degree turn clockwise
+            #Set both motors to turn in opposite directions 
+            self.motorL.Forward(75)
+            self.motorR.Reverse(75)
+            #Wait for the given time
+            sleep_ms(f_turn_time)
+        elif deg == -180:
+            self.motorR.Forward(75)
+            self.motorL.Reverse(75)
+            #Wait for the given time
+            sleep_ms(f_turn_time)
+            #Try to detect the line. Exits loop when line is detcted
         #Turn motors off to make line tracking more consistent
         self.off()
             
@@ -138,9 +164,35 @@ class LineFollower():
     def set_speeds(self, left_speed, right_speed):
         self.motorL.Forward(left_speed) #Left motor
         self.motorR.Forward(right_speed) #Right motor
+        
+    def exit_loc(self):          
+        self.motorL.Reverse(75)
+        self.motorR.Reverse(75)
+        sleep_ms(1000)
+        
+        self.turn(180)
+        #sleep_ms(500)
+        self.motorL.Reverse(75)
+        self.motorR.Reverse(75)
+        sleep_ms(1000)
+        
+        self.off()
     
+    def exit_depot(self, dep):
+        self.motorL.Reverse(75)
+        self.motorR.Reverse(75)
+        sleep_ms(1500)
+        
+        if dep == "dep1":
+            self.turn(180)
+        else:
+            self.turn(-180)
+        self.off()
+        
+        self.motorL.Reverse(75)
+        self.motorR.Reverse(75)
+        sleep_ms(1500)
     #Turn both motors off
     def off(self):
         self.motorL.off()
         self.motorR.off()
-
