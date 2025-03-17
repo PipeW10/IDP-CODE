@@ -33,13 +33,6 @@ class Controller:
         
         #Set up colour sensor
         self.tcs = TCS34725(I2C(id = 0, sda = Pin(8), scl = Pin(9), freq = 50000))
-        
-        #Time of Flight Sensor set up
-        #self.tof = VL53L0X(I2C(id=1, sda=Pin(10), scl=Pin(11)))
-        #self.sleep_ms(100)
-        #self.tof.set_measurement_timing_budget(40000)
-        #self.tof.set_Vcsel_pulse_period(self.tof.vcsel_period_type[0], 12)
-        #self.tof.set_Vcsel_pulse_period(self.tof.vcsel_period_type[1], 8)
             
     #Called at the start of the run
     def undertake_task(self):
@@ -70,7 +63,7 @@ class Controller:
             #Make the bot return to the start point
             self.visit_no += 1
             end = "start"
-                
+        print(end)        
         #Find in the dirc_paths and paths dictionaries the paths needed
         dircs = self.nav.return_dircs(self.current_node, end)
         path = self.nav.return_nodes(self.current_node, end)
@@ -86,7 +79,7 @@ class Controller:
                 
         #Get the path to be traversed and the correseponding array of cardinal directions
         path, dircs = self.start_new_path()
-        
+        print(self.current_node)
         #Travel through the whole path until the end point is reached
         for step in range(len(path) - 1):
             #calculate how much to turn
@@ -99,13 +92,11 @@ class Controller:
                     self.linef.loc_turn(90)
                 else:
                     self.linef.turn(90)
-                    print("rturn")
             elif turn_dirc == 1 or turn_dirc == -3:
                 if path[step + 1][:3] == "loc":
                     self.linef.loc_turn(-90)
                 else:
                     self.linef.turn(-90)
-                    print("lturn")
                 
             #DONT NEED 180 HERE
             #elif turn_dirc == 2 or turn_dirc == -2:
@@ -162,10 +153,10 @@ class Controller:
                 self.operation = "End"
             else:
                 self.operation = "Lift"
-        if self.current_dirc == 1 or self.current_dirc == 2:
-            self.current_dirc += 2
-        else:
-            self.current_dirc -= 2
+            if self.current_dirc == 1 or self.current_dirc == 2:
+                self.current_dirc += 2
+            else:
+                self.current_dirc -= 2
     #Function to detect the colour of the box 
     def detect_colour_depot(self):
         #Only need to be able to detect one set of colours (ie. red and yellow)
