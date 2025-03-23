@@ -9,20 +9,24 @@ class Motor:
 
         self.current_speed = 0
 
+    #Turns the motor off
     def off(self):
         self.pwm.duty_u16(0)
         self.current_speed = 0
 
     def Forward(self, speed):
         if self.current_speed != speed:
-            self.Dir.value(0) # forward = 0 reverse = 1 motor 1
-            self.pwm.duty_u16(int(65535*speed/100)) # speed range 0-100 motor 1
+            self.Dir.value(0) #Forward = 0
+            self.pwm.duty_u16(int(65535*speed/100)) #Speed range 0-100
+            #Update current speed
             self.current_speed = speed
      
     def Reverse(self, speed):
-        if self.current_speed != -speed: #negative speed for reverse
-            self.Dir.value(1)
-            self.pwm.duty_u16(int(65535*speed/100))
+        #Negative speed for reverse
+        if self.current_speed != -speed: 
+            self.Dir.value(1) #Reverse = 1
+            self.pwm.duty_u16(int(65535*speed/100)) #Speed range 0-100
+            #Update current speed
             self.current_speed = -speed
 
 

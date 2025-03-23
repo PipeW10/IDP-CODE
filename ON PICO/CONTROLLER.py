@@ -27,6 +27,7 @@ class Controller:
         
         #Set up forklift Servo
         self.servo = Servo(pin = 15, freq = 50)
+        self.servo.mid()
         
         #Set up LED
         self.led = Pin(14, Pin.OUT)
@@ -62,8 +63,7 @@ class Controller:
         elif self.operation == "End":
             #Make the bot return to the start point
             self.visit_no += 1
-            end = "start"
-        print(end)        
+            end = "start"        
         #Find in the dirc_paths and paths dictionaries the paths needed
         dircs = self.nav.return_dircs(self.current_node, end)
         path = self.nav.return_nodes(self.current_node, end)
@@ -79,28 +79,37 @@ class Controller:
                 
         #Get the path to be traversed and the correseponding array of cardinal directions
         path, dircs = self.start_new_path()
-        print(self.current_node)
         #Travel through the whole path until the end point is reached
         for step in range(len(path) - 1):
             #calculate how much to turn
             turn_dirc = self.current_dirc - dircs[step]
             #turn corresponding to the turning degrees needed
+            #0 = no turning needed
             if turn_dirc == 0:             
                 self.linef.pass_intersection()
+            # -1 or 3 = turn right
             elif turn_dirc ==  -1 or turn_dirc == 3:
+                #If the robot is turining into a box location
                 if path[step + 1][:3] == "loc":
+                    #drop the servo so it can pick the box up
+                    self.servo.drop()
+                    #Location Turn
                     self.linef.loc_turn(90)
                 else:
+                    #Normal Turn
                     self.linef.turn(90)
+            #1 or -3 = turn left
             elif turn_dirc == 1 or turn_dirc == -3:
+                #If the robot is turining into a box location
                 if path[step + 1][:3] == "loc":
+                    #drop the servo so it can pick the box up
+                    self.servo.drop()
+                    #Location Turn
                     self.linef.loc_turn(-90)
                 else:
+                    #Normal Turn
                     self.linef.turn(-90)
-                
-            #DONT NEED 180 HERE
-            #elif turn_dirc == 2 or turn_dirc == -2:
-                #self.linef.turn(180)
+
             #Set what the new current direction is and what the node will be after travelling forward          
             self.current_dirc = dircs[step]
             #Increase step by 1 to keep track of next node to go to
@@ -124,14 +133,12 @@ class Controller:
             self.perform_op()
         #return current_dirc, current_node
 
+    #Function to either drop or lift a box
     def perform_op (self):
         if self.operation == "Lift":
-            #move forward until box detected
-            #while (self.tof.ping()-50 > 10):
-                #self.linef.follow_line()
+            #Move forward until line in front of box detected
             self.linef.head_straight()
-            #lift forklift
-            #Servo at 90 degrees
+            #Lift forklift
             self.servo.lift()
             
             #Change operation to drop
@@ -139,45 +146,51 @@ class Controller:
             #Add 1 to number of boxes picked
             self.boxes_picked += 1
             
+            #Exit location in linef class
             self.linef.exit_loc()
-          
+        
+        #If operation = drop 
         else:
+            #Head straight until edge of depot detected
             self.linef.head_straight()
             #lower forklift
             self.servo.drop()
-            #BACK UP
-            #while (self.tof.ping()-50 < 50):
+            
+            #Exit depot in linef class
             self.linef.exit_depot(self.current_node)
-            #SHOULD TURN AROUND WHEN NAVIGATING TO NEXT BOX
+            #Change operation to needed depending on how many boxes have been colleceted
             if self.boxes_picked == 4:
                 self.operation = "End"
             else:
                 self.operation = "Lift"
+            
+            #Robot has turned around so update current direction
             if self.current_dirc == 1 or self.current_dirc == 2:
                 self.current_dirc += 2
             else:
                 self.current_dirc -= 2
+            self.servo.mid()
+                
     #Function to detect the colour of the box 
     def detect_colour_depot(self):
         #Only need to be able to detect one set of colours (ie. red and yellow)
-        #read the colour of the box
+        #Read the colour of the box
         colour = self.tcs.read('rgb')
-        #will do a range
+        #Colour[0] corresponds to green and blue
         if colour[0] == 1:
             end = "dep1"
+        #Any other number will be for other depot
         else:
             end = "dep2"  
         return end
         
 
     def finish(self):
-        #get into finsh box
-        #self.linef.head_straight()
+        #Get into finsh box by heading straight for a certain amount of time
         self.linef.set_speeds(100,100)
-        sleep(2)
+        sleep_ms(750)
         #turn motors off
         self.linef.off()
+        #Turn led to stop blinking
         self.led.value(0)
 
-            
-        
